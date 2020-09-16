@@ -19,7 +19,7 @@ class MainViewModel(private val myDao: MyDao) : ViewModel() {
     private val pageSize = 15
     private val initialLoadSize = pageSize * 4
     private val totalItems = 1000
-    private val updateInterval: Long = 500
+    private val updateInterval: Long = 10
     private var updaterJob: Job? = null
     private val _adapterUpdater = MutableLiveData<Unit>()
     val adapterUpdater: LiveData<Unit> get() = _adapterUpdater

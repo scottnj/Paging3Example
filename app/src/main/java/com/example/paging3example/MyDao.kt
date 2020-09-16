@@ -38,6 +38,6 @@ class MyDao {
         invalidateCalledCount++
         Log.d(TAG, "invalidatePagingSource: $invalidateCalledCount")
         pagingSource?.invalidate()
-        pagingSource = null
+        //pagingSource = null
     }
 }
