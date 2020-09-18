@@ -19,7 +19,11 @@ class MyDao {
         initialLoadSize: Int,
         totalItems: Int
     ): Flow<PagingData<String>> {
-        val config = PagingConfig(pageSize = pageSize, initialLoadSize = initialLoadSize)
+        val config = PagingConfig(
+            pageSize = pageSize,
+            initialLoadSize = initialLoadSize,
+            enablePlaceholders = true,
+        )
         val pagingSourceFactory: () -> PagingSource<Int, String> = {
             getNewPagingSource(totalItems)
         }

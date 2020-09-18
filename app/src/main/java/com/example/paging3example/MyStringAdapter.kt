@@ -3,33 +3,58 @@ package com.example.paging3example
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.string_item.view.*
 
-class MyStringAdapter : PagingDataAdapter<String, MyStringAdapter.ViewHolder>(
-    DiffCallback
-) {
+class MyStringAdapter : PagingDataAdapter<String, RecyclerView.ViewHolder>(DiffCallback) {
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.tvMessage.text = getItem(position)
+    companion object {
+        private const val LOADING_VIEW_TYPE = 0
+        private const val ITEM_VIEW_TYPE = 1
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
-            LayoutInflater.from(parent.context).inflate(
-                R.layout.string_item,
-                parent,
-                false
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item = getItem(position)
+        when (getItemViewType(position)) {
+            LOADING_VIEW_TYPE -> holder as LoadingViewHolder
+            ITEM_VIEW_TYPE -> (holder as ItemViewHolder).setItemDetails(item!!)
+            else -> throw IndexOutOfBoundsException("Unknown view type")
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (getItem(position) == null) LOADING_VIEW_TYPE else ITEM_VIEW_TYPE
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            LOADING_VIEW_TYPE -> LoadingViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.loading_item,
+                    parent,
+                    false
+                )
             )
-        )
+            ITEM_VIEW_TYPE -> ItemViewHolder(
+                LayoutInflater.from(parent.context).inflate(
+                    R.layout.string_item,
+                    parent,
+                    false
+                )
+            )
+            else -> throw IndexOutOfBoundsException("Unknown view type")
+        }
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvMessage: TextView = itemView.tvMessage
+    class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun setItemDetails(item: String) {
+            itemView.tvMessage.text = item
+        }
     }
+
+    class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     object DiffCallback : DiffUtil.ItemCallback<String>() {
         override fun areItemsTheSame(oldItem: String, newItem: String): Boolean {
