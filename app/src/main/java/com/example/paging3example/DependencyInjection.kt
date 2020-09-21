@@ -9,7 +9,7 @@ val appModule = module {
     }
 
     factory {
-        MyStringAdapter()
+        MyItemAdapter()
     }
 
     factory {

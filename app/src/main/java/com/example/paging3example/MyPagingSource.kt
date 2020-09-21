@@ -9,12 +9,11 @@ import kotlinx.coroutines.withContext
 private val TAG = MyPagingSource::class.java.simpleName
 
 class MyPagingSource(
-    private val invalidateCalledCount: Int,
     private val pagingSourceCount: Int,
-    private val totalItems: Int
-) : PagingSource<Int, String>() {
+    private val totalItems: Int,
+) : PagingSource<Int, MyItem>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, String> =
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MyItem> =
         withContext(Dispatchers.IO) {
             return@withContext try {
                 val offset = params.key ?: 0
@@ -22,7 +21,6 @@ class MyPagingSource(
                 val response = query(
                     limit = limit,
                     offset = offset,
-                    invalidateCalledCount = invalidateCalledCount,
                     pagingSourceCount = pagingSourceCount,
                 )
                 val nextKey = if (response.size < limit) null else offset + limit
@@ -36,8 +34,8 @@ class MyPagingSource(
                     itemsBefore = offset,
                     itemsAfter = itemsAfter,
                 )
-            } catch (e: Exception) {
-                Log.e(TAG, "load: ${e.localizedMessage}", e)
+            } catch (e: RuntimeException) {
+                Log.e(TAG, "load: caught: ${e.localizedMessage}", e)
                 LoadResult.Error(e)
             }
         }
@@ -48,19 +46,30 @@ class MyPagingSource(
     private suspend fun query(
         limit: Int,
         offset: Int,
-        invalidateCalledCount: Int,
         pagingSourceCount: Int
-    ): List<String> = withContext(Dispatchers.IO) {
-        delay(1000)
+    ): List<MyItem> = withContext(Dispatchers.IO) {
 
-        val list = mutableListOf<String>()
+//TODO: Added delay to see status of Loading
+        delay(500)
+
+        val list = mutableListOf<MyItem>()
 
         repeat(limit) { index ->
             val id = offset + index
+
+//TODO: Throwing exception to see status of Error
+            if (id >= 10) throw RuntimeException("Fake Runtime Exception")
+
             if (id >= totalItems) return@withContext list
-            val message =
-                "$id, invalidateCalledCount:$invalidateCalledCount, pagingSourceCount:$pagingSourceCount, limit:$limit, offset:$offset, index:$index"
-            list.add(message)
+
+            val item = MyItem(
+                id = id,
+                pagingSourceCount = pagingSourceCount,
+                limit = limit,
+                offset = offset,
+                index = index
+            )
+            list.add(item)
         }
 
         Log.v(
@@ -68,7 +77,6 @@ class MyPagingSource(
                 query:
                     limit = $limit
                     offset = $offset
-                    invalidateCalledCount = $invalidateCalledCount
                     pagingSourceCount = $pagingSourceCount
                     count = ${list.size}
                 """.trimIndent()
