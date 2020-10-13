@@ -5,14 +5,10 @@ import org.koin.dsl.module
 
 val appModule = module {
     viewModel {
-        MainViewModel(get())
+        MainViewModel()
     }
 
     factory {
         MyItemAdapter()
-    }
-
-    factory {
-        MyDao()
     }
 }

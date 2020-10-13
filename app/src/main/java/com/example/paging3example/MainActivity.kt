@@ -1,7 +1,6 @@
 package com.example.paging3example
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,25 +22,11 @@ class MainActivity : AppCompatActivity() {
         rvData.apply {
             layoutManager = LinearLayoutManager(context)
             setHasFixedSize(false)
-
-            //TODO: To show the header/footer, Comment/Uncomment code here
-            adapter = myItemAdapter.withLoadStateHeaderAndFooter(
-                header = MyLoadStateAdapter(),
-                footer = MyLoadStateAdapter(),
-            )
-
-//            adapter = myItemAdapter.withLoadStateHeader(
-//                header = MyLoadStateAdapter(),
-//            )
-
-//            adapter = myItemAdapter.withLoadStateFooter(
-//                footer = MyLoadStateAdapter(),
-//            )
+            adapter = myItemAdapter
         }
 
         lifecycleScope.launchWhenCreated {
             viewModel.flow.collectLatest { pagingData ->
-                Log.v(TAG, "onCreate: collecting: $pagingData")
                 myItemAdapter.submitData(pagingData)
             }
         }

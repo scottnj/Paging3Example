@@ -5,83 +5,60 @@ import androidx.paging.PagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.math.max
+import kotlin.math.min
 
 private val TAG = MyPagingSource::class.java.simpleName
 
-class MyPagingSource(
-    private val pagingSourceCount: Int,
-    private val totalItems: Int,
-) : PagingSource<Int, MyItem>() {
+class MyPagingSource(override val jumpingSupported: Boolean) : PagingSource<Int, MyItem>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MyItem> =
-        withContext(Dispatchers.IO) {
+    companion object {
+        val sampleData: List<MyItem> = mutableListOf<MyItem>().apply {
+            repeat(125) { index -> add(MyItem(index)) }
+        }
+    }
+
+    private fun getCount(): Int = sampleData.size
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MyItem> {
+        return withContext(Dispatchers.IO) {
             return@withContext try {
                 val offset = params.key ?: 0
                 val limit = params.loadSize
-                val response = query(
-                    limit = limit,
-                    offset = offset,
-                    pagingSourceCount = pagingSourceCount,
-                )
-                val nextKey = if (response.size < limit) null else offset + limit
-                val prevKey = if (offset == 0) null else offset - limit
-                val itemsAfter = totalItems - (response.size + offset)
 
-                return@withContext LoadResult.Page(
+                val response = query(limit, offset)
+
+                val itemsAfter = getCount() - (response.size + offset)
+                val nextKey = if (itemsAfter == 0) null else min(offset + limit, getCount())
+                val prevKey = if (offset == 0) null else max(offset - limit, 0)
+
+                LoadResult.Page(
                     data = response,
                     prevKey = prevKey,
                     nextKey = nextKey,
                     itemsBefore = offset,
                     itemsAfter = itemsAfter,
                 )
-            } catch (e: RuntimeException) {
+            } catch (e: ExpectedException) {
                 Log.e(TAG, "load: caught: ${e.localizedMessage}", e)
                 LoadResult.Error(e)
             }
         }
+    }
 
-    // This function simply generates a list of items with useful debugging information.
-    // The repeat loop could very easily be replaced with a content provider query or call to
-    // some other data source.
     private suspend fun query(
         limit: Int,
         offset: Int,
-        pagingSourceCount: Int
     ): List<MyItem> = withContext(Dispatchers.IO) {
+        Log.d(TAG, "query: limit: $limit, offset: $offset")
 
-//TODO: Added delay to see status of Loading
         delay(500)
+        //if (offset > 100) throw ExpectedException()
 
-        val list = mutableListOf<MyItem>()
-
-        repeat(limit) { index ->
-            val id = offset + index
-
-//TODO: Throwing exception to see status of Error
-            if (id >= 10) throw RuntimeException("Fake Runtime Exception")
-
-            if (id >= totalItems) return@withContext list
-
-            val item = MyItem(
-                id = id,
-                pagingSourceCount = pagingSourceCount,
-                limit = limit,
-                offset = offset,
-                index = index
-            )
-            list.add(item)
-        }
-
-        Log.v(
-            TAG, """
-                query:
-                    limit = $limit
-                    offset = $offset
-                    pagingSourceCount = $pagingSourceCount
-                    count = ${list.size}
-                """.trimIndent()
-        )
-
-        return@withContext list
+        val minIndex = max(offset, 0)
+        val maxIndex = min(limit + offset, getCount())
+        return@withContext sampleData.subList(minIndex, maxIndex)
     }
+
+    class ExpectedException(message: String = "Fake exception") : RuntimeException(message)
 }

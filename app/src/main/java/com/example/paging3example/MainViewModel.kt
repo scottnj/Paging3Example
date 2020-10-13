@@ -2,27 +2,36 @@ package com.example.paging3example
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 
-private val TAG = MainViewModel::class.java.simpleName
+class MainViewModel : ViewModel() {
+    companion object {
+        private const val PAGE_SIZE = 10
+        private const val PREFETCH_DISTANCE = PAGE_SIZE                       // default = pageSize
+        private const val ENABLE_PLACEHOLDERS = true                          // default = true
+        private const val INITIAL_LOAD_SIZE = PAGE_SIZE                       // default = pageSize * 3
+        private const val MAX_SIZE = 2 * PREFETCH_DISTANCE + PAGE_SIZE        // default = Int.MAX_VALUE
+        private const val JUMP_THRESHOLD = Int.MIN_VALUE                      // default = Int.MIN_VALUE
+        private const val JUMPING_SUPPORTED = JUMP_THRESHOLD != Int.MIN_VALUE // default = false
+    }
 
-class MainViewModel(private val myDao: MyDao) : ViewModel() {
-    private val pageSize = 1
-    private val initialLoadSize = 1 //pageSize * 3
-    private val totalItems = 10
-
-    val flow: Flow<PagingData<MyItemAdapter.Model>>
-        get() = myDao.flow(
-            pageSize = pageSize,
-            initialLoadSize = initialLoadSize,
-            totalItems = totalItems
-        ).map {
-            it.map { myItem -> MyItemAdapter.Model.Item(myItem = myItem) as MyItemAdapter.Model }
-        }.flowOn(Dispatchers.IO).cachedIn(viewModelScope)
+    val flow: Flow<PagingData<MyItem>> = Pager(
+        config = PagingConfig(
+            pageSize = PAGE_SIZE,
+            prefetchDistance = PREFETCH_DISTANCE,
+            enablePlaceholders = ENABLE_PLACEHOLDERS,
+            initialLoadSize = INITIAL_LOAD_SIZE,
+            maxSize = MAX_SIZE,
+            jumpThreshold = JUMP_THRESHOLD
+        ),
+        pagingSourceFactory = {
+            MyPagingSource(jumpingSupported = JUMPING_SUPPORTED)
+        },
+    ).flow.flowOn(Dispatchers.IO).cachedIn(viewModelScope)
 }
