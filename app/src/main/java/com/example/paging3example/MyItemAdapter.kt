@@ -5,7 +5,8 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.my_item_item.view.*
+import com.example.paging3example.databinding.LoadingItemBinding
+import com.example.paging3example.databinding.MyItemItemBinding
 import javax.inject.Inject
 
 class MyItemAdapter @Inject constructor() :
@@ -25,24 +26,36 @@ class MyItemAdapter @Inject constructor() :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val layoutInflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            ITEM_VIEW_KEY -> ItemViewHolder(parent)
-            LOADING_VIEW_KEY -> LoadingViewHolder(parent)
+            ITEM_VIEW_KEY -> ItemViewHolder(
+                MyItemItemBinding.inflate(
+                    layoutInflater,
+                    parent,
+                    false
+                )
+            )
+            LOADING_VIEW_KEY -> LoadingViewHolder(
+                LoadingItemBinding.inflate(
+                    layoutInflater,
+                    parent,
+                    false
+                )
+            )
             else -> throw IndexOutOfBoundsException("Unknown view type")
         }
     }
 
-    inner class ItemViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
-        LayoutInflater.from(parent.context).inflate(R.layout.my_item_item, parent, false)
-    ) {
+    inner class ItemViewHolder(private val binding: MyItemItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
         fun bind(item: MyItem) {
-            itemView.tvText.text = item.text
+            binding.tvText.text = item.text
         }
     }
 
-    class LoadingViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
-        LayoutInflater.from(parent.context).inflate(R.layout.loading_item, parent, false)
-    )
+    class LoadingViewHolder(private val binding: LoadingItemBinding) :
+        RecyclerView.ViewHolder(binding.root)
 
     object DiffCallback : DiffUtil.ItemCallback<MyItem>() {
         override fun areItemsTheSame(oldItem: MyItem, newItem: MyItem) = oldItem.id == newItem.id
