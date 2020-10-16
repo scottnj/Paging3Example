@@ -1,19 +1,20 @@
 package com.example.paging3example
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.flow.collectLatest
-import org.koin.android.ext.android.inject
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import javax.inject.Inject
 
-private val TAG = MainActivity::class.java.simpleName
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    private val viewModel: MainViewModel by viewModel()
-    private val myItemAdapter: MyItemAdapter by inject()
+    private val viewModel: MainViewModel by viewModels()
+    @Inject
+    lateinit var myItemAdapter: MyItemAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         rvData.apply {
             layoutManager = LinearLayoutManager(context)
-            setHasFixedSize(false)
+            setHasFixedSize(true)
             adapter = myItemAdapter
         }
 

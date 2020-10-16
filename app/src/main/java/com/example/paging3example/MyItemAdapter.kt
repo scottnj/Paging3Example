@@ -6,8 +6,9 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.my_item_item.view.*
+import javax.inject.Inject
 
-class MyItemAdapter :
+class MyItemAdapter @Inject constructor() :
     PagingDataAdapter<MyItem, RecyclerView.ViewHolder>(DiffCallback) {
     companion object {
         private const val ITEM_VIEW_KEY = 0

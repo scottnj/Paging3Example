@@ -1,5 +1,6 @@
 package com.example.paging3example
 
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -10,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 
-class MainViewModel : ViewModel() {
+class MainViewModel @ViewModelInject constructor() : ViewModel() {
     companion object {
         private const val PAGE_SIZE = 10
         private const val PREFETCH_DISTANCE = PAGE_SIZE                       // default = pageSize
